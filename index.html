@@ -31,8 +31,8 @@
         <main>
             <div class="calculator-container">
                 <div class="screen">
-                    <div class="last-result">12 + 12</div>
-                    <div class="current-result">=24</div>
+                    <div class="last-result" id="lastResult"></div>
+                    <div class="current-result" id="currentResult">0</div>
                 </div>
                 <div class="buttons-container">
                     <div class="col">
@@ -64,15 +64,15 @@
                     </div>
                     <div class="col">
                         <div class="row">
-                            <button class="btn">/</button>
+                            <button class="btn operator">÷</button>
                         </div>
                         <div class="row">
-                            <button class="btn">x</button>
+                            <button class="btn operator">x</button>
                         </div>
                         <div class="row">
-                            <button class="btn">-</button>
+                            <button class="btn operator">-</button>
                         </div>
-                        <button class="btn plus-sign">+</button>
+                        <button class="btn plus-sign operator">+</button>
                     </div>
                 </div>
             </div>

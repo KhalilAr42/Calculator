@@ -6,11 +6,118 @@ let operatorPriority = {
     "+": "0",
     "-": "0",
     "*": "1",
-    "/": "1",
+    x: "1",
+    "÷": "1",
 };
 
 const lastResultDiv = document.querySelector("#lastResult");
+const currentResult = document.querySelector("#currentResult");
 const buttons = document.querySelectorAll("button");
+
+function handleButtonClick(text) {
+    let lastChar = lastResultDiv.textContent.at(-1);
+
+    if (isEmpty(lastResultDiv.textContent) && text != "AC" && text != "C") {
+        if (!isOperator(text)) {
+            lastResultDiv.textContent += text;
+            return;
+        }
+        return;
+    }
+
+    if (isEmpty(lastResultDiv.textContent) && isOperator(text)) {
+        return;
+    }
+
+    if (isOperator(text) && text != "%") {
+        if (lastChar == ".") {
+            lastResultDiv.textContent =
+                lastResultDiv.textContent.slice(0, -1) + text;
+            return;
+        }
+
+        if (isOperator(lastChar)) {
+            lastResultDiv.textContent =
+                lastResultDiv.textContent.slice(0, -1) + text;
+            return;
+        }
+    }
+
+    if (text == "AC") {
+        clearCalculator();
+        return;
+    }
+
+    if (text == "C") {
+        lastResultDiv.textContent = lastResultDiv.textContent.slice(0, -1);
+        return;
+    }
+
+    if (text == "%") {
+        if (lastResultDiv.textContent.slice(0, -1).match(/[x+\/%\-]/)) {
+            if ((currentResult.textContent = isOperator(lastChar))) {
+                currentResult.textContent =
+                    calculatePostfixExpression(
+                        lastResultDiv.textContent.slice(0, -1)
+                    ) / 100;
+                lastResultDiv.textContent = currentResult.textContent;
+            } else {
+                currentResult.textContent =
+                    calculatePostfixExpression(lastResultDiv.textContent) / 100;
+                lastResultDiv.textContent = currentResult.textContent;
+            }
+        } else {
+            currentResult.textContent = (
+                parseFloat(lastResultDiv.textContent) / 100
+            ).toFixed(2);
+            lastResultDiv.textContent = currentResult.textContent;
+        }
+    }
+
+    if (
+        text == "." &&
+        (isOperator(lastChar) ||
+            lastChar == "." ||
+            lastResultDiv.textContent
+                .split(/[x+\/%\-\÷]/)
+                .slice(-1)[0]
+                .includes("."))
+    ) {
+        return;
+    }
+
+    if (text == "=") {
+        if (lastResultDiv.textContent.slice(0, -1).match(/[x+\/%\-\÷]/)) {
+            if ((currentResult.textContent = isOperator(lastChar))) {
+                currentResult.textContent = calculatePostfixExpression(
+                    lastResultDiv.textContent.slice(0, -1)
+                );
+                lastResultDiv.textContent = currentResult.textContent;
+            } else {
+                currentResult.textContent = calculatePostfixExpression(
+                    lastResultDiv.textContent
+                );
+                lastResultDiv.textContent = currentResult.textContent;
+            }
+        } else {
+            currentResult.textContent = lastResultDiv.textContent;
+        }
+
+        return;
+    }
+    lastResultDiv.textContent += text;
+}
+
+function clearCalculator() {
+    lastResultDiv.textContent = "";
+    currentResult.textContent = "";
+}
+
+buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+        handleButtonClick(button.textContent);
+    });
+});
 
 function add(firstNumber, secondNumber) {
     return firstNumber + secondNumber;
@@ -39,7 +146,7 @@ function operate(firstNumber, operator, secondNumber) {
             return substract(firstNumber, secondNumber);
         case "*":
             return multiply(firstNumber, secondNumber);
-        case "/":
+        case "÷":
             return divide(firstNumber, secondNumber);
         default:
             console.error(`This is not a valid operator : ${operator}`);
@@ -59,6 +166,7 @@ function isOperator(char) {
         char == "*" ||
         char == "x" ||
         char == "/" ||
+        char == "÷" ||
         char == "%"
     );
 }
@@ -68,7 +176,7 @@ function isEmpty(array) {
 }
 
 function isDigit(char) {
-    return /\d/.test(char);
+    return /\d|\./.test(char);
 }
 
 function convertToPostfixExpression(expression) {
@@ -121,7 +229,7 @@ function calculatePostfixExpression(expression) {
         if (isDigit(char)) {
             operand += char;
         } else if (char == " ") {
-            stack.push(parseInt(operand));
+            stack.push(parseFloat(operand));
             operand = "";
         } else {
             let number1 = stack.pop();
@@ -137,12 +245,12 @@ function calculatePostfixExpression(expression) {
                     i++;
                     break;
 
-                case "/":
-                    stack.push(operate(number2, "/", number1));
+                case "÷":
+                    stack.push(operate(number2, "÷", number1));
                     i++;
                     break;
 
-                case "*":
+                case "x":
                     stack.push(operate(number2, "*", number1));
                     i++;
                     break;
@@ -154,5 +262,8 @@ function calculatePostfixExpression(expression) {
         }
     }
 
-    return stack.pop();
+    return stack
+        .pop()
+        .toFixed(2)
+        .replace(/[.,]00$/, "");
 }
