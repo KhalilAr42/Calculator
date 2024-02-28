@@ -15,102 +15,127 @@ const currentResult = document.querySelector("#currentResult");
 const buttons = document.querySelectorAll("button");
 
 function handleButtonClick(text) {
+    let expression = lastResultDiv.textContent;
     let lastChar = lastResultDiv.textContent.at(-1);
 
-    if (isEmpty(lastResultDiv.textContent) && text != "AC" && text != "C") {
-        if (!isOperator(text)) {
-            lastResultDiv.textContent += text;
-            return;
-        }
+    let userStartsWithClearButtons = isEmpty(expression) && (text == "AC" || text == "C");
+    let userStartsWithOperator = isEmpty(expression) && isOperator(text);
+    let userStartWithDot = isEmpty(expression) && text == ".";
+    let userClickOnClearButton = text === "AC";
+    let userClickOnRemoveButton = text === "C";
+    let userClickOnPercentageButton = text === "%";
+    let userClickOnEqualButton = text === "=";
+    let userTriesToAddOperatorInSpecificConditions = isOperator(text) && text !== "%" && (lastChar === "." || isOperator(lastChar));
+    let userTriesToEnterInvalidDot =
+        text == "." &&
+        (isOperator(lastChar) ||
+            lastChar === "." ||
+            expression
+                .split(/[x+\/%\-\÷]/)
+                .slice(-1)[0]
+                .includes("."));
+    let userEntersOnlyText = expression.match(/^\d*\.?\d*$/);
+    let userEntersOnlyTextfollowedByOneOperator = expression.match(/^\d*\.?\d+[x+\/\-\÷]$/);
+
+    if (userEntersOnlyTextfollowedByOneOperator && userClickOnEqualButton) {
+        updateResult(expression.slice(0, -1));
+        return;
+    }
+    if (userStartsWithOperator) {
         return;
     }
 
-    if (isEmpty(lastResultDiv.textContent) && isOperator(text)) {
+    if (userStartWithDot) {
         return;
     }
 
-    if (isOperator(text) && text != "%") {
-        if (lastChar == ".") {
-            lastResultDiv.textContent =
-                lastResultDiv.textContent.slice(0, -1) + text;
-            return;
-        }
-
-        if (isOperator(lastChar)) {
-            lastResultDiv.textContent =
-                lastResultDiv.textContent.slice(0, -1) + text;
-            return;
-        }
+    if (userStartsWithClearButtons) {
+        return;
     }
 
-    if (text == "AC") {
+    if (userTriesToAddOperatorInSpecificConditions) {
+        lastResultDiv.textContent = lastResultDiv.textContent.slice(0, -1) + text;
+        return;
+    }
+
+    if (userClickOnClearButton) {
         clearCalculator();
         return;
     }
 
-    if (text == "C") {
-        lastResultDiv.textContent = lastResultDiv.textContent.slice(0, -1);
+    if (userClickOnRemoveButton) {
+        removeLastChar();
         return;
     }
 
-    if (text == "%") {
+    //if the user want to calculate the pourcentage (weird shit:p)
+    if (userClickOnPercentageButton) {
         if (lastResultDiv.textContent.slice(0, -1).match(/[x+\/%\-]/)) {
             if ((currentResult.textContent = isOperator(lastChar))) {
-                currentResult.textContent =
-                    calculatePostfixExpression(
-                        lastResultDiv.textContent.slice(0, -1)
-                    ) / 100;
+                currentResult.textContent = calculatePostfixExpression(lastResultDiv.textContent.slice(0, -1)) / 100;
                 lastResultDiv.textContent = currentResult.textContent;
             } else {
-                currentResult.textContent =
-                    calculatePostfixExpression(lastResultDiv.textContent) / 100;
+                currentResult.textContent = calculatePostfixExpression(lastResultDiv.textContent) / 100;
                 lastResultDiv.textContent = currentResult.textContent;
             }
         } else {
-            currentResult.textContent = (
-                parseFloat(lastResultDiv.textContent) / 100
-            ).toFixed(2);
+            currentResult.textContent = (parseFloat(lastResultDiv.textContent) / 100).toFixed(2);
             lastResultDiv.textContent = currentResult.textContent;
         }
     }
 
-    if (
-        text == "." &&
-        (isOperator(lastChar) ||
-            lastChar == "." ||
-            lastResultDiv.textContent
-                .split(/[x+\/%\-\÷]/)
-                .slice(-1)[0]
-                .includes("."))
-    ) {
+    if (userTriesToEnterInvalidDot) {
         return;
     }
 
-    if (text == "=") {
-        if (lastResultDiv.textContent.slice(0, -1).match(/[x+\/%\-\÷]/)) {
-            if ((currentResult.textContent = isOperator(lastChar))) {
-                currentResult.textContent = calculatePostfixExpression(
-                    lastResultDiv.textContent.slice(0, -1)
-                );
-                lastResultDiv.textContent = currentResult.textContent;
-            } else {
-                currentResult.textContent = calculatePostfixExpression(
-                    lastResultDiv.textContent
-                );
-                lastResultDiv.textContent = currentResult.textContent;
-            }
-        } else {
-            currentResult.textContent = lastResultDiv.textContent;
-        }
-
+    if (userEntersOnlyText && userClickOnEqualButton) {
+        currentResult.textContent = lastResultDiv.textContent;
         return;
     }
+
+    if (userClickOnEqualButton && isOperator(lastChar)) {
+        updateResult(calculatePostfixExpression(lastResultDiv.textContent.slice(0, -1)));
+        return;
+    }
+
+    if (userClickOnEqualButton && !isOperator(lastChar)) {
+        updateResult(calculatePostfixExpression(lastResultDiv.textContent));
+        return;
+    }
+
+    //anything else just append the text to the display
     lastResultDiv.textContent += text;
+}
+
+function isFloat(n) {
+    return Number(n) === n && n % 1 !== 0;
 }
 
 function clearCalculator() {
     lastResultDiv.textContent = "";
     currentResult.textContent = "";
+}
+
+function removeLastChar() {
+    lastResultDiv.textContent = lastResultDiv.textContent.slice(0, -1);
+}
+
+function generateRandomFunnyAngryEmoji() {
+    let array = ["ಠ益ಠ", "ಠ_ಠ", "ಥ﹏ಥ", "ಥ_ಥ", "(⊙︿⊙)"];
+    let randomIndex = Math.floor(Math.random() * 5);
+    return array[randomIndex];
+}
+
+function updateResult(result) {
+    if (isFloat(result)) {
+        lastResultDiv.textContent = result.toFixed(2);
+        currentResult.textContent = result.toFixed(2);
+    } else if (result == "awili ?" || isNaN(result)) {
+        currentResult.textContent = generateRandomFunnyAngryEmoji();
+    } else {
+        lastResultDiv.textContent = result;
+        currentResult.textContent = result;
+    }
 }
 
 buttons.forEach((button) => {
@@ -160,15 +185,7 @@ function isValidMathOperation(expression) {
 }
 
 function isOperator(char) {
-    return (
-        char == "+" ||
-        char == "-" ||
-        char == "*" ||
-        char == "x" ||
-        char == "/" ||
-        char == "÷" ||
-        char == "%"
-    );
+    return char == "+" || char == "-" || char == "*" || char == "x" || char == "/" || char == "÷" || char == "%";
 }
 
 function isEmpty(array) {
@@ -262,8 +279,5 @@ function calculatePostfixExpression(expression) {
         }
     }
 
-    return stack
-        .pop()
-        .toFixed(2)
-        .replace(/[.,]00$/, "");
+    return stack.pop();
 }

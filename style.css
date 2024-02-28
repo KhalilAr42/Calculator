@@ -186,6 +186,18 @@ main {
     font-size: 20px;
     padding: 0px 12px;
     margin-top: 24px;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
+::-webkit-scrollbar {
+    height: 10px; /* height of horizontal scrollbar ← You're missing this */
+    width: 4px; /* width of vertical scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #393812;
+    -webkit-border-radius: 1px;
 }
 
 .current-result {
