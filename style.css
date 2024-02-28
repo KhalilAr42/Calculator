@@ -157,6 +157,12 @@ header h1 {
     margin: 0;
 }
 
+.error-message {
+    font-weight: 600;
+    color: red;
+    text-align: center;
+}
+
 main {
     display: flex;
     justify-content: center;
@@ -204,6 +210,8 @@ main {
     min-height: 64px;
     font-size: 40px;
     padding: 0px 12px;
+    overflow-x: scroll;
+    white-space: nowrap;
 }
 
 .buttons-container {

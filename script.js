@@ -13,6 +13,7 @@ let operatorPriority = {
 const lastResultDiv = document.querySelector("#lastResult");
 const currentResult = document.querySelector("#currentResult");
 const buttons = document.querySelectorAll("button");
+const errorMessageDiv = document.querySelector("#errorMessage");
 
 function handleButtonClick(text) {
     let expression = lastResultDiv.textContent;
@@ -36,6 +37,17 @@ function handleButtonClick(text) {
                 .includes("."));
     let userEntersOnlyText = expression.match(/^\d*\.?\d*$/);
     let userEntersOnlyTextfollowedByOneOperator = expression.match(/^\d*\.?\d+[x+\/\-\÷]$/);
+    let userInputIsTooLong = expression.length >= 20;
+
+    if (userInputIsTooLong && !userClickOnRemoveButton && !userClickOnClearButton) {
+        errorMessageDiv.textContent = "Your input is too long, remove some digits";
+    } else {
+        errorMessageDiv.textContent = "";
+    }
+
+    if (userInputIsTooLong && !userClickOnRemoveButton && !userClickOnEqualButton && !userClickOnClearButton) {
+        return;
+    }
 
     if (userEntersOnlyTextfollowedByOneOperator && userClickOnEqualButton) {
         updateResult(expression.slice(0, -1));
@@ -142,6 +154,58 @@ buttons.forEach((button) => {
     button.addEventListener("click", () => {
         handleButtonClick(button.textContent);
     });
+});
+
+document.addEventListener("keydown", (event) => {
+    const key = event.key;
+    let buttonText = "";
+
+    switch (key) {
+        case "Escape":
+        case "Delete":
+            buttonText = "AC";
+            break;
+        case "Backspace":
+            buttonText = "C";
+            break;
+        case "%":
+            buttonText = "%";
+            break;
+        case "/":
+            buttonText = "÷";
+            break;
+        case "*":
+            buttonText = "x";
+            break;
+        case "-":
+            buttonText = "-";
+            break;
+        case "+":
+            buttonText = "+";
+            break;
+        case "=":
+        case "Enter":
+            buttonText = "=";
+            break;
+        default:
+            if (/^\d$/.test(key)) {
+                buttonText = key;
+            }
+            break;
+    }
+
+    if (buttonText) {
+        let button;
+        if (["+", "-", "x", "÷", "%"].includes(buttonText)) {
+            const operatorButtons = document.querySelectorAll(".btn.operator");
+            button = Array.from(operatorButtons).find((btn) => btn.textContent.trim() === buttonText);
+        } else {
+            button = Array.from(document.querySelectorAll(".btn:not(.operator):not(.plus-sign):not(.dot):not(.equals)")).find((btn) => btn.textContent.trim() === buttonText);
+        }
+        if (button) {
+            button.click();
+        }
+    }
 });
 
 function add(firstNumber, secondNumber) {
